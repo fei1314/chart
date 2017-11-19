@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <style media="screen">
+      .mine{
+        background: green;
+      }
+    </style>
+    <script src="http://localhost:8080/socket.io/socket.io.js" charset="utf-8"></script>
+    <script>
+      window.onload=function(){
+        let cur_username='';
+        let sock=io.connect('ws://localhost:8080/');
+        let oBtn1=document.getElementById('btn1');
+        let oUser=document.getElementById('user');
+        let oPass=document.getElementById('pass');
+        let oBtn2=document.getElementById('btn2');
+        let oUl=document.getElementById('ul1');
+        let oBtnSend=document.getElementById('btn_send');
+        let oTxt=document.getElementById('txt1')
+
+        //注册
+        sock.on('reg_ret',(code,msg)=>{
+          if(code){
+            alert('失败了'+msg)
+          }else{
+            alert('注册成功')
+          }
+        })
+        oBtn1.onclick=function(){
+          sock.emit('reg',oUser.value,oPass.value);
+        }
+
+
+        //登录
+        sock.on('login_ret',(code,msg)=>{
+          if(code){
+            alert('登录失败'+msg)
+          }else{
+            alert('登录成功');
+            cur_username=oUser.value;
+          }
+        })
+        oBtn2.onclick=function(){
+          sock.emit('login',oUser.value,oPass.value);
+        }
+
+        sock.on('msg_ret', (code, msg)=>{
+          if(code){
+            alert('消息发送失败，'+msg);
+          }else{
+            let oLi=document.createElement('li');
+            oLi.className='mine';
+
+            oLi.innerHTML=`<h4>${cur_username}</h4><p>${oTxt.value}</p>`;
+            oUl.appendChild(oLi);
+
+            oTxt.value='';
+          }
+        });
+        sock.on('msg', (name, txt)=>{
+          let oLi=document.createElement('li');
+          oLi.innerHTML=`<h4>${name}</h4><p>${txt}</p>`;
+          oUl.appendChild(oLi);
+        });
+        oBtnSend.onclick=function (){
+          sock.emit('msg', oTxt.value);
+        };
+      }
+    </script>
+  </head>
+  <body>
+
+
+    用户名:<input type="text" id="user">
+    密码:<input type="password" id="pass">
+    <input type="button" name="" value="注册" id="btn1">
+    <input type="button" name="" value="登录" id="btn2">
+    <hr>
+    <textarea id="txt1" rows="4" cols="80"></textarea>
+    <input type="button" name="" value="发送" id="btn_send">
+    <ul id="ul1">
+
+    </ul>
+  </body>
+</html>
